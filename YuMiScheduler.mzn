@@ -20,7 +20,7 @@ int: no_actual_tasks = card(index_set_2of2(task_durations)); % number of actual 
 
 int: no_tot_tasks = no_actual_tasks+2*no_agents; % all tasks, including dummy start & end tasks
 
-int: min_duration = 0;
+int: min_duration = 1;
 int: max_duration = max([ task_durations[r,n] | r in AGENTS, n in ACTUAL_TASKS]);
 int: max_travel_time = max([ left_arm_travel_times[i,j] | i,j in LOCATIONS] ++ [ right_arm_travel_times[i,j] | i,j in LOCATIONS] );
 
@@ -80,7 +80,11 @@ int: minimax_time_budget_right = sum (i in ACTUAL_TASKS) (
 
 int: minimax_time_budget = min([minimax_time_budget_left,minimax_time_budget_right]);
 int: min_traveltime = 1;
+int: min_waittime = 1;
 set of int: TOTTIME = 0..time_budget;
+set of int: WAITTIME = min_waittime..time_budget;
+
+
 set of int: DURTIME = min_duration..max_duration; %smaller domain, for task durations. needs to include 0, due to dummy tasks
 set of int: TRAVELTIME = min_traveltime..max_travel_time; % smaller domain, for travel times, needs to include 0, due to dummy tasks
 
@@ -112,6 +116,7 @@ set of int: SUCTION_TASKS = all_tasks(suction_pick_tasks_orders);
 set of int: AIRGUN_TASKS;
 set of int: OUTPUT_TASKS;
 set of int: empty_gripper_tasks; % these are tasks for which the application requires empty gripper (e.g. "peeling of tape")
+
 
 % We assume these sets have no overlap, and form the full set of locations
 set of int: TRAY_LOCATIONS;
@@ -152,7 +157,8 @@ array[TASKS] of var TOTTIME: arrival_time; % when agent arrives at task
 array[TASKS] of var TOTTIME: start_time; % when agent start working on task
 array[TASKS] of var TOTTIME: end_time; % when agent finish working on task
 array[TASKS] of var TOTTIME: next_arrival_time; % when agent arrives at next task
-array[TASKS] of var TOTTIME: pre_work_waiting_time; % Time between arrival_time and start_time (needed(?) to ensure collision detection at all times)
+
+array[TASKS] of var WAITTIME: pre_work_waiting_time; % Time between arrival_time and start_time (needed(?) to ensure collision detection at all times)
 array[TASKS] of var DURTIME: duration; % duration of task
 array[TASKS] of var TRAVELTIME: travel_time; % travel time of going from task i to successor[i]
 
@@ -252,7 +258,7 @@ constraint forall(t in DEPOT_TASKS) (
     /\
     duration[t] == min_duration
     /\
-    pre_work_waiting_time[t] = 0
+    pre_work_waiting_time[t] = min_waittime
   );
 
 
@@ -403,7 +409,7 @@ constraint forall(t in ACTUAL_TASKS) (
   next_arrival_time[t] = arrival_time[successor[t]]
 );
 
-constraint forall(t in TASKS)(
+constraint forall(t in ACTUAL_TASKS)(
   arrival_time[t] + pre_work_waiting_time[t] = start_time[t]
 );
 
@@ -416,21 +422,21 @@ constraint forall(t in ACTUAL_TASKS) (
 
 % Constrain first task of fixture to start immiediately - could possibly hinder good _cyclic_ schedules
 constraint forall(r in 1..no_fixtures)(
-  start_time[fixture_task_orders[r,1]] = arrival_time[fixture_task_orders[r,1]]
+  start_time[fixture_task_orders[r,1]] = arrival_time[fixture_task_orders[r,1]] + min_waittime
 );
 
 % Constrain tasks to start directly, or as soon as previous task finishes
 constraint forall(r in 1..no_fixtures, n in 1..(fixture_order_lengths - 1) where fixture_task_orders[r,n+1] >= 0 )(
-  start_time[fixture_task_orders[r,n+1]] = max(arrival_time[fixture_task_orders[r,n+1]],
+  start_time[fixture_task_orders[r,n+1]] = max(arrival_time[fixture_task_orders[r,n+1]] + min_waittime,
                                                end_time[fixture_task_orders[r,n]])
 );
 
 % Constrain non-fixture tasks to work when arriving at location
 % this is valid since non-fixture tasks occupy the same space while waiting as it does while working
 constraint forall(t in ACTUAL_TASKS where not(t in FIXTURE_TASKS) ) (
-  arrival_time[t] = start_time[t]
+  arrival_time[t] + min_waittime = start_time[t]
   /\
-  pre_work_waiting_time[t] = 0
+  pre_work_waiting_time[t] = min_waittime
 );
 
 % Ordering imposed by suction pick-n-place
@@ -914,7 +920,6 @@ constraint alldifferent([location[t] | t in TRAY_TASKS] );
 % Constraint 8, and equivalents - in separate file(s)
 
 array[1..2] of int: FixtureWorkObstruction;
-array[1..2] of int: IdleArmObstruction; % no longer in use - only here since generated data files have this
 
 % Making sure fixture is emptied before next assembly:
 constraint forall(order_list_id in 1..no_fixtures) (
