@@ -158,7 +158,7 @@ array[TASKS] of var TOTTIME: start_time; % when agent start working on task
 array[TASKS] of var TOTTIME: end_time; % when agent finish working on task
 array[TASKS] of var TOTTIME: next_arrival_time; % when agent arrives at next task
 
-array[TASKS] of var WAITTIME: pre_work_waiting_time; % Time between arrival_time and start_time (needed(?) to ensure collision detection at all times)
+array[TASKS] of var WAITTIME: waiting_time; % Time between arrival_time and start_time (needed(?) to ensure collision detection at all times)
 array[TASKS] of var DURTIME: duration; % duration of task
 array[TASKS] of var TRAVELTIME: travel_time; % travel time of going from task i to successor[i]
 
@@ -258,7 +258,7 @@ constraint forall(t in DEPOT_TASKS) (
     /\
     duration[t] == min_duration
     /\
-    pre_work_waiting_time[t] = min_waittime
+    waiting_time[t] = min_waittime
   );
 
 
@@ -410,7 +410,7 @@ constraint forall(t in ACTUAL_TASKS) (
 );
 
 constraint forall(t in ACTUAL_TASKS)(
-  arrival_time[t] + pre_work_waiting_time[t] = start_time[t]
+  arrival_time[t] + waiting_time[t] = start_time[t]
 );
 
 % Table: arm dependent task duration
@@ -436,7 +436,7 @@ constraint forall(r in 1..no_fixtures, n in 1..(fixture_order_lengths - 1) where
 constraint forall(t in ACTUAL_TASKS where not(t in FIXTURE_TASKS) ) (
   arrival_time[t] + min_waittime = start_time[t]
   /\
-  pre_work_waiting_time[t] = min_waittime
+  waiting_time[t] = min_waittime
 );
 
 % Ordering imposed by suction pick-n-place
@@ -465,7 +465,7 @@ constraint implied_constraint(
      diffn(
        [arrival_time[t] | t in TASKS],
        [ agent[t] | t in TASKS],
-       [ duration[t] + travel_time[t] + pre_work_waiting_time[t] | t in TASKS],
+       [ duration[t] + travel_time[t] + waiting_time[t] | t in TASKS],
        [1 | t in TASKS]
     )
   endif
@@ -477,7 +477,7 @@ constraint implied_constraint(
     true
   else
     cumulative( [arrival_time[t] | t in ACTUAL_TASKS]
-	      , [duration[t] + travel_time[t] + pre_work_waiting_time[t] | t in ACTUAL_TASKS]
+	      , [duration[t] + travel_time[t] + waiting_time[t] | t in ACTUAL_TASKS]
 	      , [1 | t in ACTUAL_TASKS]
 	      , 2
 	      )
@@ -491,7 +491,7 @@ constraint implied_constraint(
   else
     forall(a in AGENTS)(
       cumulative( [arrival_time[t] | t in ACTUAL_TASKS]
-		, [duration[t] + travel_time[t] + pre_work_waiting_time[t] | t in ACTUAL_TASKS]
+		, [duration[t] + travel_time[t] + waiting_time[t] | t in ACTUAL_TASKS]
 		, [agent[t] = a | t in ACTUAL_TASKS]
 		, 1
 		)
