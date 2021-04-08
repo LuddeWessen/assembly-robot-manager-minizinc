@@ -150,7 +150,7 @@ array[TASKS] of var AGENTS: agent; % Which agent performs the task
 
 % Route encodings - each of these encode the same information, but in different ways
 array[TASKS] of var TASKS: successor; % Task sequence encoding where successor[i] = j means task j follows task i
-array[TASKS] of var TASKS: ordered_successor; % Task sequence encoding where ordered_successor[i] = j means task j is i:th to be performed
+array[TASKS] of var TASKS: task; % Task sequence encoding where task[i] = j means task j is i:th to be performed
 
 % Time variables:
 array[TASKS] of var TOTTIME: arrival_time; % when agent arrives at task
@@ -191,7 +191,7 @@ constraint agent_counts[1,2] = sum(t in TRAY_TASKS)(agent[t]) - card(TRAY_TASKS)
 % - After end task of arm N comes start task of arm 0
 % We use 4 equivalent Encodings:
 % (A) successor
-% (B) ordered_successor
+% (B) task
 
 % =================================================%
 % Constraint related to the dummy tasks:
@@ -210,10 +210,10 @@ constraint successor[END_DEPOT_TASK_LIST[1]] = START_DEPOT_TASK_LIST[2] ;
 
 % Encoding B: (only states start & end of full sequence)START_DEPOT_TASK_LIST[1]] = END_DEPOT_TASK_LIST[2];
 
-constraint ordered_successor[no_tot_tasks] = END_DEPOT_TASK_LIST[2];
-constraint ordered_successor[1] = START_DEPOT_TASK_LIST[1]; % The statements A) There is "c" ones in "agent" and B) agent one's last task is on c:th place in the sequence
-constraint ordered_successor[agent_count] = END_DEPOT_TASK_LIST[1];
-constraint ordered_successor[agent_count+1] = START_DEPOT_TASK_LIST[2];
+constraint task[no_tot_tasks] = END_DEPOT_TASK_LIST[2];
+constraint task[1] = START_DEPOT_TASK_LIST[1]; % The statements A) There is "c" ones in "agent" and B) agent one's last task is on c:th place in the sequence
+constraint task[agent_count] = END_DEPOT_TASK_LIST[1];
+constraint task[agent_count+1] = START_DEPOT_TASK_LIST[2];
 
 % Fixing dummy tasks to correct agent:
 constraint forall(a in AGENTS)(
@@ -287,12 +287,12 @@ constraint forall(t in DEPOT_TASKS) (
 constraint circuit(successor) :: domain;
 
 % ----------------------------------------------------------------------
-% Connect Successor Encoding (A) with "ordered_successor" Encoding (B)
+% Connect Successor Encoding (A) with "task" Encoding (B)
 % ----------------------------------------------------------------------
-constraint forall(t in 1..(no_tot_tasks-1)) (ordered_successor[t+1] = successor[ordered_successor[t]]);
+constraint forall(t in 1..(no_tot_tasks-1)) (task[t+1] = successor[task[t]]);
 
 % Redundant
-constraint alldifferent(ordered_successor) :: domain;
+constraint alldifferent(task) :: domain;
 
 
 %-----------------------------------------------------------------------------------
@@ -595,7 +595,7 @@ else
           ;
 
 
-  } in regular(ordered_successor, strSuctionHold)
+  } in regular(task, strSuctionHold)
 )
 endif
 %)
@@ -654,7 +654,7 @@ string: strSuctionHold =
 
       ;
 
-} in regular(ordered_successor, strSuctionHold)
+} in regular(task, strSuctionHold)
 endif
 %)
 ;
@@ -726,7 +726,7 @@ else
                 ++
                 keep_tool_empty ++ "*" ++
             ")";
-    } in regular(ordered_successor, strToolPnP)
+    } in regular(task, strToolPnP)
   )
 
 endif
@@ -790,7 +790,7 @@ else
 
           ;
 
-  } in regular(ordered_successor, strGripHold)
+  } in regular(task, strGripHold)
 
 endif
 %)
@@ -835,7 +835,7 @@ else
 
 
           |  order_list_id in 1..no_gripper_picks];
-    } in regular(ordered_successor, "(" ++ str_a2str(strToolPnP,1) ++ ")*" )
+    } in regular(task, "(" ++ str_a2str(strToolPnP,1) ++ ")*" )
 
 endif
 %)
@@ -891,7 +891,7 @@ constraint %implied_constraint(
           "){"++show(no_agents)++"}"
           ;
 
-  } in regular(ordered_successor, strFixtureTasks)
+  } in regular(task, strFixtureTasks)
 )
   endif
 %)
@@ -923,12 +923,12 @@ array[1..2] of int: FixtureWorkObstruction;
 
 % Making sure fixture is emptied before next assembly:
 constraint forall(order_list_id in 1..no_fixtures) (
-    end_time[fixture_task_orders[order_list_id, sequence_length(fixture_task_orders, order_list_id)]] <= start_time[fixture_task_orders[order_list_id,1]] + cyclic_makespan
+    end_time[fixture_task_orders[order_list_id, sequence_length(fixture_task_orders, order_list_id)]] <= start_time[fixture_task_orders[order_list_id,1]] + period
   );
 
 % Making sure no overlap of assembly tasks within an agent (might remove some solutions, but a reasonable simplification as to facilitate pick-up-and-delivery constraints hold):
 constraint forall(a in AGENTS)(
-  start_time[START_DEPOT_TASK_LIST[a]] + cyclic_makespan = start_time[END_DEPOT_TASK_LIST[a]]
+  start_time[START_DEPOT_TASK_LIST[a]] + period = start_time[END_DEPOT_TASK_LIST[a]]
 );
 
 % =============================================================
@@ -961,17 +961,17 @@ var TOTTIME: cycle_overlap ;
 constraint cycle_overlap = max([start_time[START_DEPOT_TASK_LIST[1]], start_time[START_DEPOT_TASK_LIST[2]] ]);
 
 set of int: FINISH_TIMES = (minimax_time_budget div 2)..time_budget;
-var FINISH_TIMES: cyclic_makespan ;
+var FINISH_TIMES: period ;
 var FINISH_TIMES: makespan;
 
-constraint makespan = cyclic_makespan + cycle_overlap ;
+constraint makespan = period + cycle_overlap ;
 
 %constraint makespan <= sum(duration ++ travel_time);
 
 
-% This follows from the definition of makespan, cycle_overlap and cyclic_makespan
+% This follows from the definition of makespan, cycle_overlap and period
 % Very useful, since this is a cost function without negative weights
-constraint cyclic_makespan = min([  next_arrival_time[END_DEPOT_TASK_LIST[1]] ,
+constraint period = min([  next_arrival_time[END_DEPOT_TASK_LIST[1]] ,
                                     next_arrival_time[END_DEPOT_TASK_LIST[2]]
                                  ]) ;
 
@@ -992,7 +992,7 @@ constraint
     let {TASKS: ti = fixture_task_orders[r,i],
          TASKS: tj = fixture_task_orders[r,j],
 	 var int: enable = (agent[ti] != agent[tj]) * ti,
-    } in value_precede(ti, tj, [enable] ++ ordered_successor)
+    } in value_precede(ti, tj, [enable] ++ task)
   )
   endif
 ;
@@ -1003,7 +1003,7 @@ constraint
     true
   else
   forall(r in index_set_1of2(suction_pick_tasks_orders))(
-    value_precede_chain(suction_pick_tasks_orders[r,..], ordered_successor)
+    value_precede_chain(suction_pick_tasks_orders[r,..], task)
   )
   endif
 ;
@@ -1014,7 +1014,7 @@ constraint
     true
   else
   forall(r in index_set_1of2(gripper_pick_tasks_orders))(
-    value_precede_chain(gripper_pick_tasks_orders[r,..], ordered_successor)
+    value_precede_chain(gripper_pick_tasks_orders[r,..], task)
   )
   endif
 ;
@@ -1030,8 +1030,8 @@ constraint
 	 ],
     } in load[1] = 0 /\
          forall(j in TASKS where j>1)(
-           load[j] = load[j-1] + delta[ordered_successor[j]] /\
-	   if ordered_successor[j] in empty_gripper_tasks then
+           load[j] = load[j-1] + delta[task[j]] /\
+	   if task[j] in empty_gripper_tasks then
 	     load[j] = 0
 	   else true endif
          );
@@ -1047,7 +1047,7 @@ constraint
 	 ],
     } in load[1] = 0 /\
          forall(j in TASKS where j>1)(
-           load[j] = load[j-1] + delta[ordered_successor[j]]
+           load[j] = load[j-1] + delta[task[j]]
          );
 
 % This constraint improves propagation
@@ -1073,10 +1073,10 @@ output
    [ "\nno_locations = "] ++ [show([no_locations])] ++
    [ "\nno_fixtures = "] ++ [show([no_fixtures])] ++
 
-   [ "\ncyclic_makespan = " ] ++ [show(cyclic_makespan)]  ++
+   [ "\nperiod = " ] ++ [show(period)]  ++
    [ "\nmakespan = "] ++ [show(makespan)] ++
    [ "\nagent = " ] ++ [ show(agent) ] ++
-   [ "\nordered_successor = " ] ++ [ show(ordered_successor) ]++
+   [ "\ntask = " ] ++ [ show(task) ]++
    [ "\nlocation = " ] ++ [ show(location) ]++
    [ "\ntask_ordering = " ] ++ [ show([0 | t in TASKS]) ]++
    %[ "\ntask_ordering = " ] ++ [ show(task_ordering) ]++
@@ -1182,8 +1182,8 @@ function string: str_a_slice2str(array[int,int] of string: string_array, string:
 solve :: seq_search([
 		     int_search(agent, dom_w_deg, indomain_random, complete),
 		     int_search(location, dom_w_deg, indomain_min, complete),
-		     int_search(ordered_successor, input_order, indomain_min, complete),
+		     int_search(task, input_order, indomain_min, complete),
 		     int_search(arrival_time, smallest, indomain_split, complete),
                     ])
     :: restart_luby(100)
-  minimize cyclic_makespan;
+  minimize period;
