@@ -113,7 +113,6 @@ set of int: CAMERA_TASKS;
 set of int: FIXTURE_TASKS = all_tasks(fixture_task_orders);
 set of int: GRIPPER_TASKS = all_tasks(gripper_pick_tasks_orders);
 set of int: SUCTION_TASKS = all_tasks(suction_pick_tasks_orders);
-set of int: AIRGUN_TASKS;
 set of int: OUTPUT_TASKS;
 set of int: empty_gripper_tasks; % these are tasks for which the application requires empty gripper (e.g. "peeling of tape")
 
@@ -320,7 +319,6 @@ predicate remove_invalids(set of int: tasks, set of int: locs) =
 constraint remove_invalids(TRAY_TASKS, TRAY_LOCATIONS);
 constraint remove_invalids(CAMERA_TASKS, CAMERA_LOCATIONS);
 constraint remove_invalids(FIXTURE_TASKS, FIXTURE_LOCATIONS);
-constraint remove_invalids(AIRGUN_TASKS, AIRGUN_LOCATIONS);
 constraint remove_invalids(OUTPUT_TASKS, OUTPUT_LOCATIONS);
 
 
@@ -1150,8 +1148,6 @@ function set of int: location_domain(int: task) =
     TRAY_LOCATIONS
   elseif task in CAMERA_TASKS then
     CAMERA_LOCATIONS
-  elseif task in AIRGUN_TASKS then
-    AIRGUN_LOCATIONS
   elseif task in OUTPUT_TASKS then
     OUTPUT_LOCATIONS
   else
