@@ -1,0 +1,6 @@
+# Generated data files #
+###################
+*.dzn
+# Python compiled bytecode #
+###################
+*.pyc
