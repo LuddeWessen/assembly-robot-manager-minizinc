@@ -28,14 +28,12 @@ MiniZinc is developed at Monash University in collaboration with Data61 Decision
   * [Generating Assembly Instance Data Files Using Python](#generating-assembly-instance-data-files-using-python)
 * [General Usage](#general-usage)
 * [Running Tests](#running-tests)
-* [License](#license)
 * [Contact](#contact)
 
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-The code is a MIT license open source.
 It is developed as a part of Johan Ludde Wessén's PhD project at KTH and ABB.
 
 You can use the code by providing it with data files on the appropriate format.
@@ -110,17 +108,8 @@ In the example we have separated the data into several files:
 
 We have not designed tests for the python code. This work for the future.
 
-<!-- LICENSE -->
-## License
 
-* Copyright (C) Johan Ludde Wessén - All Rights Reserved
- * Unauthorized distributing of files in this repository is prohibited until further notice (on date of paper being accepted)
- * Proprietary and confidential
- * Written by Johan Ludde Wessén <jlwessen@kth.se>, March 2021
- */
+<!-- CONTACT -->
+## Contact
 
-
- <!-- CONTACT -->
- ## Contact
-
- 🏛 Website: [https://www.kth.se/profile/jlwessen](https://www.kth.se/profile/jlwessen)
+🏛 Website: [https://www.kth.se/profile/jlwessen](https://www.kth.se/profile/jlwessen)
