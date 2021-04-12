@@ -67,11 +67,11 @@ For the FleetManager to work you need to have the `minizinc` executable availabl
 ### Running Example
 
 Static collision avoidance:
- - With the `minizinc` executable available on your path: run `minizinc --solver Gecode YuMiScheduler.mzn robot_cell_data/yumi_grid_setup_3_3.dzn p_4_GS_SG_example.dzn collision_avoidance_resource_zones.mzn robot_cell_data/yumi_grid_setup_3_3_zones.dzn -s -a
+ - With the `minizinc` executable available on your path: run `minizinc --solver Gecode YuMiScheduler.mzn collision_avoidance_resource_zones.mzn instance_data/example_instance_4_GS_SG.dzn robot_cell_data/yumi_grid_setup_3_3.dzn robot_cell_data/yumi_grid_setup_3_3_zones.dzn -s -a
 `
 
 Dynamic (spatio-temporal) collision avoidance:
-- With the `minizinc` executable available on your path: run `minizinc --solver Gecode YuMiScheduler.mzn robot_cell_data/yumi_grid_setup_3_3.dzn p_4_GS_SG_example.dzn collision_avoidance_static_linear.mzn -s -a
+- With the `minizinc` executable available on your path: run `minizinc --solver Gecode YuMiScheduler.mzn collision_avoidance_static_linear.mzn instance_data/example_instance_4_GS_SG.dzn robot_cell_data/yumi_grid_setup_3_3.dzn -s -a
 `
 
 ### Generating Assembly Instance Data Files Using Python

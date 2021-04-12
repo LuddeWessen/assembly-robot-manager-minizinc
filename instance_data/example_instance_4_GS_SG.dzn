@@ -1,0 +1,49 @@
+%-----------------------------------------------------------------------------%
+% Dual Arm Multi Capacity Multi Tool Scheduling / Routing example.
+% YuMi + Workspace Configuration
+% Authored by Johan Ludde Wessen
+%-----------------------------------------------------------------------------%
+
+% In short (omitting camera tasks, press tasks and tools to use ):
+% The robot arms pick 4 components (task 1-4),
+% then place 2 components of fixture 1 (task 7 then 9), and 2 components on fixtrue 2 (task 10 then 8).
+% Then picks the resulting sub-assembly (task 5) and places it on fixture 2 (task 11).
+% Then the resulting assembly is picked (task 6) and is placed on output tray (task 12).
+
+
+
+% Durations of tasks (columns) for each agent (rows)
+task_durations = [|24, 26, 28, 30, 32, 34, 44, 46, 48, 50, 52, 54, 28, 30,  4,  5,  6,  7,  8
+                  |25, 27, 29, 31, 33, 35, 45, 47, 49, 51, 53, 55, 29, 31,  5,  6,  7,  8,  9
+                  |];
+
+% Interesting subsets of tasks
+TRAY_TASKS = 1..4; % pick tasks performed at component trays (as opposed to picking sub-assembly and assembly from fixtures)
+CAMERA_TASKS = 13..14; % camera tasks, used for calibration of object pose in robot tool
+OUTPUT_TASKS = { 12 }; % singleton set, consisting of the output task
+
+% The tasks that require empty gripper tool (similar sets could be interesting for suction tool, or requiring tool to hold item, but for this work such sets are not needed)
+empty_gripper_tasks = 15..19;
+
+% The pick-and-place task orderings involving gripper tool.
+% Each row is one such ordering, and each row is padded with -1 until matrix shape is achieved.
+% These orderings require tasks to be performed on the same arm
+gripper_pick_tasks_orders = [|1, 7, -1
+|2, 8, -1
+|5, 11, -1
+|6, 12, -1
+|];
+
+% The pick-and-place task orderings involving suction cup tool.
+% Each row is one such ordering, and each row is padded with -1 until matrix shape is achieved.
+% These orderings require tasks to be performed on the same arm
+suction_pick_tasks_orders = [|3, 13, 9, -1
+|4, 14, 10, -1
+|];
+
+% The fixture task orderings.
+% Each row is one such ordering, and each row is padded with -1 until matrix shape is achieved.
+% These orderings does not require tasks to be performed on the same arm
+fixture_task_orders = [|7, 15, 9, 17, 5, -1, -1, -1
+|10, 18, 8, 16, 11, 19, 6, -1
+|];

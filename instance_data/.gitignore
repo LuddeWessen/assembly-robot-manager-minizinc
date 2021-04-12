@@ -1,6 +1,10 @@
 # Generated data files #
 ###################
 *.dzn
+
+# Execpt the example #
+!example_instance_4_GS_SG.dzn
+
 # Python compiled bytecode #
 ###################
 *.pyc
