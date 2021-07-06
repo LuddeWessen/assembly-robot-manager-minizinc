@@ -22,6 +22,7 @@ MiniZinc is developed at Monash University in collaboration with Data61 Decision
 ## Table of Contents
 
 * [About the Project](#about-the-project)
+* [Regarding MiniZinc Challenge](#regarding-minizinc-challenge)
 * [Getting Started](#getting-started)
   * [Installation](#installation-of-solver)
   * [Running Example](#running-example)
@@ -43,6 +44,11 @@ The choice of modeling language allows for use of many different solvers distrib
 
 The model have been tested using the default solver "Gecode".
 To use any other solver backend than Gecode, one must remove the "include "gecode.mzn";" line in the YuMiScheduler.mzn file.
+
+<!-- Regarding MiniZinc Challenge -->
+## Regarding MiniZinc Challenge
+
+If you would like this model properly annotated for MiniZinc challenge, and unnecessary python scripts removed, please use the sub-folder [minizinc-challenge](https://github.com/LuddeWessen/assembly-robot-manager-minizinc/tree/main/minizinc-challenge)
 
 
 <!-- GETTING STARTED -->
