@@ -2,17 +2,17 @@
 %
 % Copyright (c) 2021 Johan Ludde Wessén
 %
-% Permission is hereby granted, free of charge, to any person obtaining 
+% Permission is hereby granted, free of charge, to any person obtaining
 % a copy of this software and associated documentation files (the "Software"),
-% to deal in the Software without restriction, including without limitation 
-% the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-% and/or sell copies of the Software, and to permit persons to whom the 
+% to deal in the Software without restriction, including without limitation
+% the rights to use, copy, modify, merge, publish, distribute, sublicense,
+% and/or sell copies of the Software, and to permit persons to whom the
 % Software is furnished to do so, subject to the following conditions:
-% 
-% The above copyright notice and this permission notice shall be included 
+%
+% The above copyright notice and this permission notice shall be included
 % in all copies or substantial portions of the Software.
 %
-% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 % EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 % MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 % NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
@@ -313,7 +313,7 @@ constraint circuit(successor) :: domain;
 constraint forall(t in 1..(no_tot_tasks-1)) (task[t+1] = successor[task[t]]);
 
 % Redundant
-constraint alldifferent(task) :: domain;
+constraint implied_constraint( alldifferent(task) ) ;
 
 
 %-----------------------------------------------------------------------------------
@@ -360,13 +360,15 @@ constraint alldifferent([location[fixture_task_orders[f,1]] | f in 1..no_fixture
 % Some locations are only reachable by some agents
 % Using that diagonal elements of travelling matrix is >=0 if feasible, -1 otherwise (currently only0, but might be >0 in the future)
 % REDUNDANT wrt constraint below, since it puts exactly the same restrictions on all tasks' agent-location tuples (however, including this constraint seems to make things ever so slightly faster..)
-constraint forall(t in TASKS)(
-  let { array[int] of int: raw_extension =
-    [ if x = 1 then 1 else l endif | l in location_domain(t) where left_arm_travel_times[l,l] >= 0, x in 1..2]
-    ++
-    [ if x = 1 then 2 else l endif | l in location_domain(t) where right_arm_travel_times[l,l] >= 0, x in 1..2]
+constraint implied_constraint(
+  forall(t in TASKS)(
+    let { array[int] of int: raw_extension =
+      [ if x = 1 then 1 else l endif | l in location_domain(t) where left_arm_travel_times[l,l] >= 0, x in 1..2]
+      ++
+      [ if x = 1 then 2 else l endif | l in location_domain(t) where right_arm_travel_times[l,l] >= 0, x in 1..2]
 
-    } in table( [agent[t]] ++ [location[t]], array2d(1..(length(raw_extension) div 2), 1..2, raw_extension) )
+      } in table( [agent[t]] ++ [location[t]], array2d(1..(length(raw_extension) div 2), 1..2, raw_extension) )
+  )
 );
 
 %----------------------------------------------------
@@ -561,7 +563,7 @@ constraint forall(order_list_id in 1..no_gripper_picks)(
         all_equal([agent[gripper_pick_tasks_orders[order_list_id,list_pos]] | list_pos in 1..(sequence_length(gripper_pick_tasks_orders, order_list_id)) ] )
       );
 
-% Redundant wrt the pick-n-place
+% We know the ordering value will be increasing
 constraint forall(order_list_id in 1..no_gripper_picks) (
   increasing([ arrival_time[gripper_pick_tasks_orders[order_list_id,list_pos]] | list_pos in 1..(sequence_length(gripper_pick_tasks_orders, order_list_id)) ] )
 );
